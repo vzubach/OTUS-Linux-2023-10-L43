@@ -18,7 +18,7 @@ mysql> SHOW SLAVE STATUS\G
              Slave_IO_Running: Yes
             Slave_SQL_Running: Yes
 				Last_IO_Errno: 0
-                Last_IO_Error: 
+				Last_IO_Error: 
                Last_SQL_Errno: 0
                Last_SQL_Error: 
            Retrieved_Gtid_Set: 1e4faa4b-0dde-11ef-8109-5254004d77d3:1-39
