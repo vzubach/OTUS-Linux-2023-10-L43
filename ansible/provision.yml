@@ -1,0 +1,61 @@
+---
+
+- name: Base set up
+  hosts: all
+  #Выполнять действия от root-пользователя
+  become: yes
+  tasks:
+  # Добавляем репозиторий Percona
+  - name: install repo
+    yum:
+      name: 'https://repo.percona.com/yum/percona-release-latest.noarch.rpm'
+      state: present
+
+  - name: Enable the Percona Server 5.7 repository
+    shell: percona-release setup ps57
+
+  # Устанавливаем Percona-Server-server-57
+  - name: install Percona-Server-server-57
+    yum: 
+      name: Percona-Server-server-57
+      state: present
+      update_cache: true
+
+  ##Копирование файла конфигурации для mysql1
+  - name: Copy config for mysql1 to /etc/mysql/conf.d/mysql.cnf
+    ansible.builtin.copy:
+      remote_src: yes
+      src: /vagrant/conf.d/master.cnf 
+      dest: /etc/my.cnf.d/mysql.cnf
+      owner: root
+      group: root
+      mode: 0644
+    when: (ansible_hostname == "mysql1")
+
+  ##Копирование файла конфигурации для mysql2
+  - name: Copy config for mysql2 to /etc/mysql/conf.d/mysql.cnf
+    ansible.builtin.copy:
+      remote_src: yes
+      src: /vagrant/conf.d/slave.cnf 
+      dest: /etc/my.cnf.d/mysql.cnf
+      owner: root
+      group: root
+      mode: 0644
+    when: (ansible_hostname == "mysql2")
+
+  # Запускаем сервис mysql
+  - name: enable and start service mysqld
+    service:
+      name: mysqld
+      state: restarted
+      enabled: true
+
+  # Настройка мастер базы на mysql1
+  - name: Configuring master base on mysql1
+    script: master.sh
+    when: (ansible_hostname == "mysql1")
+
+  # Настройка базы на mysql2
+  - name: Configuring slave base on mysql2
+    script: slave.sh
+    when: (ansible_hostname == "mysql2")
